@@ -1,4 +1,5 @@
 # MNow Instock Control Tower (method demonstration)
+> **Status: In progress (Phase 1 complete). Simulated data, not affiliated with Myntra.**
 
 An independent analytics project modelled on the responsibilities of a quick-commerce **instock analyst**:
 inventory health, stockout/overstock risk, persistence of availability gaps, replenishment-model adherence,
@@ -18,7 +19,7 @@ Event dates are verified against a calendar source (control C8 passes); the upli
 ## Run
 ```
 pip install -r requirements.txt
-python -m pytest -q                         # 16 tests
+python -m pytest -q                         # 21 tests
 python -m mnow_instock.atlas.ingest_osm     # needs internet; writes data/processed/hex_potential.parquet
 python -m mnow_instock.atlas.ingest_weather # needs internet
 cp data/raw/events_template.csv data/raw/events.csv   # verify dates, add source_url
@@ -41,9 +42,41 @@ python -m mnow_instock.build_db             # simulate, run controls, build view
    I added a minimum display quantity (`min_display_packs`); this is an assumption, not an observation.
 4. **Search/geography is not sales.** The potential index describes location features, not Myntra demand.
 
-## Next (not built yet)
-A3 risk engine with quantile forecasts and calibration vs rule baseline; A6 redistribution; A7 adherence RCA scored
-against truth labels; A8 event readiness; Excel planner; Power BI; Tableau Public map; decision memo.
+## Roadmap
+
+**Done (Phase 1)**
+- [x] Simulator with ground-truth cause labels
+- [x] 9 data controls (7 errors, 2 warnings)
+- [x] SQL views: inventory health, weekly KPIs, persistence
+- [x] OpenStreetMap store placement and weather ingest
+- [x] 21 automated tests on GitHub Actions
+
+**In development**
+- [ ] Stockout/overstock risk engine (demand forecast, stockout probability, comparison against a cover-days rule)
+- [ ] Inventory redistribution analysis
+- [ ] Replenishment-model adherence and root-cause analysis
+- [ ] Event readiness (festival and weekend demand spikes)
+- [ ] Excel planner and Power BI dashboard
+
+
+## Results (simulated data)
+
+All 9 data controls pass on the simulated dataset. Full output: [docs/controls_output.txt](docs/controls_output.txt)
+
+| Control | Severity | Check | Violations |
+|---|---|---|---|
+| C1 | ERROR | duplicate (store, sku, day) key | 0 |
+| C2 | ERROR | negative stock or sales | 0 |
+| C3 | ERROR | sold exceeds opening stock | 0 |
+| C4 | ERROR | stock not conserved | 0 |
+| C5 | ERROR | date gap in store-sku series | 0 |
+| C6 | ERROR | order arrives before placed or over-delivers | 0 |
+| C7 | ERROR | orphan store or sku key | 0 |
+| C8 | WARN | event without source URL | 0 |
+| C9 | WARN | store potential is a placeholder | 0 |
+
+City-level instock and sell-through figures come from my own simulator, not from real cities.
+
 
 ## Data notes
 
